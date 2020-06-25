@@ -1,0 +1,193 @@
+upstream php-handler {
+    server unix:/var/run/php/php7.3-fpm.sock;
+}
+
+# generated 2020-02-26, Mozilla Guideline v5.4, nginx 1.14.2, OpenSSL 1.1.1d, intermediate configuration
+# https://ssl-config.mozilla.org/#server=nginx&version=1.14.2&config=intermediate&openssl=1.1.1d&guideline=5.4
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+
+    ssl_certificate /etc/nginx/cert.pem;
+    ssl_certificate_key /etc/nginx/cert.key;
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:MozSSL:10m;  # about 40000 sessions
+    ssl_session_tickets off;
+
+    ssl_dhparam /etc/nginx/dh2048.pem;
+
+    # intermediate configuration
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
+
+    # HSTS (ngx_http_headers_module is required) (63072000 seconds)
+    add_header Strict-Transport-Security "max-age=63072000" always;
+
+    # OCSP stapling
+    ssl_stapling on;
+    ssl_stapling_verify on;
+
+    # verify chain of trust of OCSP response using Root CA and Intermediate certs
+    ssl_trusted_certificate /etc/nginx/root.pem;
+
+    resolver 223.5.5.5 114.114.114.114 valid=300s;
+    resolver_timeout 15s;
+
+    #
+    # WARNING: Only add the preload option once you read about
+    # the consequences in https://hstspreload.org/. This option
+    # will add the domain to a hardcoded list that is shipped
+    # in all major browsers and getting removed from this list
+    # could take several months.
+    add_header Referrer-Policy "no-referrer" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Download-Options "noopen" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Permitted-Cross-Domain-Policies "none" always;
+    add_header X-Robots-Tag "none" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+    # Remove X-Powered-By, which is an information leak
+    fastcgi_hide_header X-Powered-By;
+
+    # Path to the root of your installation
+    root /var/www/html;
+
+    location = /robots.txt {
+        allow all;
+        log_not_found off;
+        access_log off;
+    }
+
+    # The following 2 rules are only needed for the user_webfinger app.
+    # Uncomment it if you're planning to use this app.
+    #rewrite ^/.well-known/host-meta /nextcloud/public.php?service=host-meta last;
+    #rewrite ^/.well-known/host-meta.json /nextcloud/public.php?service=host-meta-json last;
+
+    # The following rule is only needed for the Social app.
+    # Uncomment it if you're planning to use this app.
+    #rewrite ^/.well-known/webfinger /nextcloud/public.php?service=webfinger last;
+
+    location = /.well-known/carddav {
+      return 301 $scheme://$host:$server_port/nextcloud/remote.php/dav;
+    }
+    location = /.well-known/caldav {
+      return 301 $scheme://$host:$server_port/nextcloud/remote.php/dav;
+    }
+
+    location /.well-known/acme-challenge { }
+    
+    location /pub {
+        autoindex on;
+        autoindex_exact_size off;
+        # First attempt to serve request as file, then
+        # as directory, then fall back to displaying a 404.
+        try_files $uri $uri/ =404;
+    }
+
+    location /brew {
+        return 418;
+    }
+
+    error_page 418 /errors/418/teapot.html;
+
+    location ^~ /nextcloud {
+
+        # set max upload size
+        client_max_body_size 4096M;
+        fastcgi_buffers 64 4K;
+
+        # Enable gzip but do not remove ETag headers
+        gzip on;
+        gzip_vary on;
+        gzip_comp_level 4;
+        gzip_min_length 256;
+        gzip_proxied expired no-cache no-store private no_last_modified no_etag auth;
+        gzip_types application/atom+xml application/javascript application/json application/ld+json application/manifest+json application/rss+xml application/vnd.geo+json application/vnd.ms-fontobject application/x-font-ttf application/x-web-app-manifest+json application/xhtml+xml application/xml font/opentype image/bmp image/svg+xml image/x-icon text/cache-manifest text/css text/plain text/vcard text/vnd.rim.location.xloc text/vtt text/x-component text/x-cross-domain-policy;
+
+        # Uncomment if your server is build with the ngx_pagespeed module
+        # This module is currently not supported.
+        #pagespeed off;
+
+        location /nextcloud {
+            rewrite ^ /nextcloud/index.php;
+        }
+
+        location ~ ^\/nextcloud/data/.ocdata {
+            allow all;
+        }
+
+        location ~ ^\/nextcloud\/(?:build|tests|config|lib|3rdparty|templates|data)\/ {
+            deny all;
+        }
+        location ~ ^\/nextcloud\/(?:\.|autotest|occ|issue|indie|db_|console) {
+            deny all;
+        }
+
+        location ~ ^\/nextcloud\/(?:index|remote|public|cron|core\/ajax\/update|status|ocs\/v[12]|updater\/.+|oc[ms]-provider\/.+)\.php(?:$|\/) {
+            fastcgi_split_path_info ^(.+?\.php)(\/.*|)$;
+            set $path_info $fastcgi_path_info;
+            try_files $fastcgi_script_name =404;
+            include fastcgi_params;
+            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+            fastcgi_param PATH_INFO $path_info;
+            fastcgi_param HTTPS on;
+            # Avoid sending the security headers twice
+            fastcgi_param modHeadersAvailable true;
+            # Enable pretty urls
+            fastcgi_param front_controller_active true;
+            fastcgi_pass php-handler;
+            fastcgi_intercept_errors on;
+            fastcgi_request_buffering off;
+        }
+
+        location ~ ^\/nextcloud\/(?:updater|oc[ms]-provider)(?:$|\/) {
+            try_files $uri/ =404;
+            index index.php;
+        }
+
+        # Adding the cache control header for js, css and map files
+        # Make sure it is BELOW the PHP block
+        location ~ ^\/nextcloud\/.+[^\/]\.(?:css|js|woff2?|svg|gif|map)$ {
+            try_files $uri /nextcloud/index.php$request_uri;
+            add_header Cache-Control "public, max-age=15778463";
+            # Add headers to serve security related headers  (It is intended
+            # to have those duplicated to the ones above)
+            # Before enabling Strict-Transport-Security headers please read
+            # into this topic first.
+            #add_header Strict-Transport-Security "max-age=15768000; includeSubDomains; preload;" always;
+            #
+            # WARNING: Only add the preload option once you read about
+            # the consequences in https://hstspreload.org/. This option
+            # will add the domain to a hardcoded list that is shipped
+            # in all major browsers and getting removed from this list
+            # could take several months.
+            add_header Referrer-Policy "no-referrer" always;
+            add_header X-Content-Type-Options "nosniff" always;
+            add_header X-Download-Options "noopen" always;
+            add_header X-Frame-Options "SAMEORIGIN" always;
+            add_header X-Permitted-Cross-Domain-Policies "none" always;
+            add_header X-Robots-Tag "none" always;
+            add_header X-XSS-Protection "1; mode=block" always;
+
+            # Optional: Don't log access to assets
+            access_log off;
+        }
+
+        location ~ ^\/nextcloud\/.+[^\/]\.(?:png|html|ttf|ico|jpg|jpeg|bcmap)$ {
+            try_files $uri /nextcloud/index.php$request_uri;
+            # Optional: Don't log access to other assets
+            access_log off;
+        }
+    }
+}
+
