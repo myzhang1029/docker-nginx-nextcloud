@@ -13,5 +13,8 @@ chmod 600 /etc/nginx/root.pem
 # Start php-fpm
 /etc/init.d/php{phpver}-fpm start
 
+# Start redis
+/etc/init.d/redis-server start
+
 # Start Nginx
 nginx -g "daemon off;"

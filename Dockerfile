@@ -2,7 +2,7 @@
 FROM debian:latest
 LABEL maintainer="Zhang Maiyun <myzhang1029@hotmail.com>"
  
-ARG APT_MIRROR="mirrors.tuna.tsinghua.edu.cn"
+ARG APT_MIRROR="mirrors.bfsu.edu.cn"
 ARG PHP_VER="7.3"
 
 # Set up APT
