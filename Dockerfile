@@ -6,9 +6,9 @@ LABEL maintainer="Zhang Maiyun <myzhang1029@hotmail.com>"
 ARG PHP_VER="7.3"
 
 # Set up APT
-RUN sed -i "s/httpredir.debian.org/${APT_MIRROR}/g" /etc/apt/sources.list
-RUN sed -i "s/security.debian.org/${APT_MIRROR}/g" /etc/apt/sources.list
-RUN sed -i "s/deb.debian.org/${APT_MIRROR}/g" /etc/apt/sources.list
+#RUN sed -i "s/httpredir.debian.org/${APT_MIRROR}/g" /etc/apt/sources.list
+#RUN sed -i "s/security.debian.org/${APT_MIRROR}/g" /etc/apt/sources.list
+#RUN sed -i "s/deb.debian.org/${APT_MIRROR}/g" /etc/apt/sources.list
 RUN apt-get update
 RUN apt-get upgrade -y
 
