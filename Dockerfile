@@ -32,9 +32,13 @@ RUN sed -i s/{phpver}/${PHP_VER}/ /docker-start.sh
 RUN chmod +x /docker-start.sh
 
 # Set up php-fpm configurations
+## Increase upload file size limits
 RUN sed -i "s/upload_max_filesize = 2M/upload_max_filesize = 4096M/" /etc/php/${PHP_VER}/fpm/php.ini
 RUN sed -i "s/post_max_size = 8M/post_max_size = 4096M/" /etc/php/${PHP_VER}/fpm/php.ini
+## Increase memory limit to suggested
 RUN sed -i "s/memory_limit = 128M/memory_limit = 512M/" /etc/php/${PHP_VER}/fpm/php.ini
+## Avoid 504
+RUN sed -i "s/max_execution_time = 30/max_execution_time = 0/" /etc/php/7.3/fpm/php.ini
 RUN sed -i 's/\;env\[HOSTNAME\] = $HOSTNAME/env[HOSTNAME] = $HOSTNAME/' /etc/php/${PHP_VER}/fpm/pool.d/www.conf
 RUN sed -i "s,\;env\[PATH\] = /usr/local/bin:/usr/bin:/bin,env[PATH] = /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin," /etc/php/${PHP_VER}/fpm/pool.d/www.conf
 RUN sed -i "s,\;env\[TMP\] = /tmp,env[TMP] = /tmp," /etc/php/${PHP_VER}/fpm/pool.d/www.conf
