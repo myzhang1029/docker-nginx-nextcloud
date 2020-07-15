@@ -45,6 +45,11 @@ RUN sed -i "s,\;env\[TMP\] = /tmp,env[TMP] = /tmp," /etc/php/${PHP_VER}/fpm/pool
 RUN sed -i "s,\;env\[TMPDIR\] = /tmp,env[TMPDIR] = /tmp," /etc/php/${PHP_VER}/fpm/pool.d/www.conf
 RUN sed -i "s,\;env\[TEMP\] = /tmp,env[TEMP] = /tmp," /etc/php/${PHP_VER}/fpm/pool.d/www.conf
 
+# Set up Nextcloud cron
+COPY nccron.service /etc/systemd/system/nccron.service
+COPY nccron.timer /etc/systemd/system/nccron.timer
+RUN systemctl enable --now nextcloudcron.timer
+
 EXPOSE 80
 EXPOSE 443
 
