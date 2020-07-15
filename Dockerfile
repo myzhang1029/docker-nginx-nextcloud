@@ -14,7 +14,7 @@ RUN apt-get upgrade -y
 
 RUN usermod -a -G www-data www-data
 
-RUN apt-get install -y nginx openssl ssl-cert php${PHP_VER}-xml php${PHP_VER}-dev php${PHP_VER}-curl php${PHP_VER}-gd php${PHP_VER}-fpm php${PHP_VER}-zip php${PHP_VER}-intl php${PHP_VER}-mbstring php${PHP_VER}-cli php${PHP_VER}-mysql php${PHP_VER}-common php${PHP_VER}-cgi php${PHP_VER}-apcu php${PHP_VER}-redis php${PHP_VER}-json php${PHP_VER}-mbstring php${PHP_VER}-zip php${PHP_VER}-pgsql php${PHP_VER}-bz2 php${PHP_VER}-imagick redis-server php-pear curl libapr1 libtool libcurl4-openssl-dev libxml2
+RUN apt-get install -y sudo nginx openssl ssl-cert php${PHP_VER}-xml php${PHP_VER}-dev php${PHP_VER}-curl php${PHP_VER}-gd php${PHP_VER}-fpm php${PHP_VER}-zip php${PHP_VER}-intl php${PHP_VER}-mbstring php${PHP_VER}-cli php${PHP_VER}-mysql php${PHP_VER}-common php${PHP_VER}-cgi php${PHP_VER}-apcu php${PHP_VER}-redis php${PHP_VER}-json php${PHP_VER}-mbstring php${PHP_VER}-zip php${PHP_VER}-pgsql php${PHP_VER}-bz2 php${PHP_VER}-imagick redis-server php-pear curl libapr1 libtool libcurl4-openssl-dev libxml2
 
 # Set up Nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
