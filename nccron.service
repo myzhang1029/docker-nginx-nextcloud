@@ -1,6 +1,0 @@
-[Unit]
-Description=Nextcloud cron.php job
-
-[Service]
-User=www-data
-ExecStart=/usr/bin/php -f /var/www/html/nextcloud/cron.php

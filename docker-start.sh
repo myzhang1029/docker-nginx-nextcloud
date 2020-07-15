@@ -10,6 +10,9 @@ chmod 600 /etc/nginx/cert.key
 chmod 600 /etc/nginx/dh2048.pem
 chmod 600 /etc/nginx/root.pem
 
+# Start cron
+/etc/init.d/cron start
+
 # Start php-fpm
 /etc/init.d/php{phpver}-fpm start
 
