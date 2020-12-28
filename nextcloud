@@ -59,6 +59,11 @@ server {
     # Remove X-Powered-By, which is an information leak
     fastcgi_hide_header X-Powered-By;
 
+    # Increase FastCGI timeout
+    fastcgi_connect_timeout 60;
+    fastcgi_send_timeout 1800;
+    fastcgi_read_timeout 1800;
+
     # Path to the root of your installation
     root /var/www/html;
 
